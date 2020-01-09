@@ -1,0 +1,11 @@
+{% load i18n %}
+<div class="card" style="width: 18rem;">
+    {% if obj.image %}
+    <img src="{{obj.image.url}}" class="card-img-top" alt="{{obj.title}}">
+    {% endif %}
+    <div class="card-body">
+        <h5 class="card-title">{{obj.title}}</h5>
+        <p class="card-text">{{obj.description}}</p>
+        <a href="{{obj.get_absolute_url}}" class="btn btn-primary">{% trans "Go somewhere" %}</a>
+    </div>
+</div>

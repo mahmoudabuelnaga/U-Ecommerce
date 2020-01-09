@@ -1,0 +1,336 @@
+###Create E-commerce Website
+============================
+
+-virtualenv active
+-install django
+-create project ecommerce
+-install and setup postgreSQL
+-python migrate
+-create admin page
+-product:
+    -create product app and add to installed_apps
+    -understanding CRUD[
+        -Create   == POST
+        -Retrieve == List / Search -- GET
+        -Update   == PUT / Patch
+        -Delete   == Delete
+        ]
+    -models.py[
+        #change image name
+        def get_filname_ext(filepath):
+            base_name = os.path.basename(filepath)
+            name, ext = os.path.splitext(base_name)
+            return name, ext
+        def upload_image_path(instance, filename):
+            new_filename = random.randint(1,3456787654356789)
+            name, ext = get_filname_ext(filename)
+            finally_filename = '{new_filename}{ext}'.format(new_filename=new_filename, ext=ext)
+            return "products/{new_filename}/{finally_filename}".format(new_filename=new_filename, finally_filename=finally_filename)
+
+        #MODEL QUERYSET
+        class ProductQuerySet(models.query.QuerySet):
+            def active(self):
+                return self.filter(active=True)
+            def featured(self):
+                return self.filter(featured=True, active=True)
+        
+        class ProductManager(models.Manager):
+            def get_queryset(self):
+                return ProductQuerySet(self.model, using=self._db)
+            def all(self):
+                return self.get_queryset().active()
+            def featured(self):
+                return self.get_queryset().featured()
+            def get_by_id(self,id):
+                qs = self.get_queryset(id=id)
+                if qs.count() == 1:
+                    return qs.first()
+                return None
+
+
+        -create product model[
+            -title          = char_field(max_length=120)
+            -slug           = slug_field(blank=True, null=True)
+            -description    = text_field()
+            -price          = decimal_field(max_digits=20, decimal_places=2 , default=39.99)
+            -image          = image_field(upload_to=upload_image_path, default='avatar.png')
+            -featured       = models.BooleanField(default=False)
+            -active         = models.BooleanField(default=True)
+
+            -def get_absolute_url(self):
+                return "product/{pk}/{slug}/".format({pk=pk, slug=slug})
+                #or
+                from django.urls import reverse
+                return reverse("product_detail", args=[str(self.pk,self.slug)])
+            -def str        = title
+            -def unicode    = title
+            -def save       = return slugify(title)
+        ]
+
+    ]
+    -admin[
+        -create product admin
+        -update admin site header = admin.site.site_header=("...")
+    ]
+
+    -views[
+        #هناك نوعين للتعامل مع الفيوز
+        1-class based views(
+            -import django.views.generic(
+                -ListView
+                -DetailView
+            )
+            -class ProductListView(ListView):
+                queryset = Product.objects.all()
+                queryset = Product.objects.active()
+                queryset = Product.objects.featured()
+                #or
+                def get_queryset(self, *args,**kwargs):
+                    request = get.request
+                    return Product.objects.all()
+
+                template_name = 'product/list.html'
+                context_object_name = 'products'
+                #or
+                def get_context_data(self, *args, **kwargs):
+                    context = super(ProductListView,self).get_context_data(*args, **kwargs)
+                    return context
+                
+            
+            -class ProductDetailView(DetailView):
+                queryset = Product.objects.all()
+                queryset = Product.objects.active()
+                queryset = Product.objects.featured()
+
+                #or
+                queryset = Product.objects.get_by_id()
+                if queryset is None:
+                    raise Http404("Products exist")
+                template_name = 'product/detail.html'
+                context_object_name = 'product'
+                #or
+                def get_context_data(self, *args, **kwargs):
+                    context = super(ProductListView,self).get_context_data(*args, **kwargs)
+                    return context
+
+        )
+        2-function based views(
+            -def product_list_view(request):
+                queryset = Product.objects.all()
+                context = {
+                    'products':queryset,
+                }
+                return render(request, 'product/list.html', context)
+            
+            -def product_detail_view(request, pk=None, slug=None, *args, **kwargs):
+                queryset = get_object_or_404(Product, pk=pk, slug=slug)
+                context = {
+                    'product':queryset,
+                }
+                return render(request, 'product/detail.html', context)
+        )
+    ]
+
+    -urls[
+        list(
+            path('', ProductListView.as_view(), name='products')
+            # or
+            path('', product_list_view, name='products')
+        )
+        detail(
+            path('<int:pk>/<slug:slug>/', ProductDetailView.as_view(), name='product')
+            # or
+            path('<int:pk>/<slug:slug>/', product_detail_view, name='product')
+
+        )
+    ]
+
+    -templates[
+        list.html(
+            {% for obj in products %}
+                {{obj.title}} <br/>
+                {{obj.description}} <br/>
+                {{obj.price}}
+            {% endfor %}
+        )
+        detail.html(
+            {{product.title}} <br/>
+            {{product.description}} <br/>
+            {{product.price}}
+        )
+    ]
+
+-Search[
+    -create search app && add to installed apps
+    -add to urls manage > path('search/' , include("search.urls", name='search'))
+    -create a new file urls.py in search app
+    -search.views.py[
+        form django.shortcuts import render
+        from django.views.generic import ListView
+        from product.models import Product
+        from django.db.models import Q
+
+        class SearchProductView(ListView):
+            template_name = 'search/view.html'
+
+            def fet_context_data(self, *args, **kwargs):
+                context = super(SearchProductView, self).get_context_data(*args, **kwargs)
+                context['query'] = self.request.GET.get('q')
+                return context
+
+            def get_queryset(self, *args, **kwargs):
+                query = self.request.GET.get('q',None)  #method dict view
+                if query is not None:
+                    lookups = Q(title__icontains=query) | Q(description__icontains=query) | Q(price__icontains=query)
+                    return Product.objects.search(lookups).distinct()
+                return Product.objects.featured()
+    ]
+
+    -create search view.html file (
+        {% extends "base.html" %}
+        {% block content %}
+        <div class="container">
+            <div class="row">
+                {% if object_list %}
+                    {% if query %}
+                        <div class='col-12 mb-3 alert alert-success' role="alert">
+                            Searched for {{query}}
+                        </div>
+                        <br>
+                        {% endif %}
+                        {% for obj in object_list %}
+                            <div class="col">    
+                                {% include "snippets/card.html" %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12 mb-3 alert alert-danger" role="alert">
+                            Not Found {{query}}
+                        </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endblock content %}
+    )
+]
+
+- create a Tag app[
+    -add to installed_apps
+    -tag.models[
+        title(char_field(30))
+        slug(slug_field(null=True,blank=True))
+        timestamp(dateTimeFiled(auto_now_add=True))
+        active(BooleanField(default=True))
+        products(many_to_many_field)
+
+        -def str.
+        -def save.
+    ]
+    -manage makemigrations
+    -manage migrate
+    -add Tag models to admin.py
+]
+
+
+#######################################################3
+#Cart app
+---------
+-create cart app[
+    -add installed_apps
+    -add cart in models[
+        from django.db import models
+        from product.models import Product
+        from django.contrib.auth.models import User
+        from django.db.models.signals import pre_save, post_save, m2m_changed
+
+        -add model manager[
+            class CartManager(models.Manager):
+                def new_or_get(self, request):
+                    cart_id = request.session.get('cart_id',None)
+                    qs = self.get_queryset().filter(id=cart_id)
+                    if qs.count = 1:
+                        new_obj = False
+                        cart_obj.first()
+                        if user.is_authenticated and cart_obj.user is None:
+                            cart_obj.user = request.user
+                            cart_obj.save()
+                    else:
+                        cart_obj = Cart.objects.new(user=request.user)
+                        new_obj = True
+                        request.session['cart_id'] = cart_obj.id
+                    return cart_obj, new_obj
+                
+                def new(self, user=None):
+                    user_obj = False
+                    if user is not None:
+                        if user.is_authenticated:
+                            user_obj = user
+                    return self.model.objects.create(user=user_obj)
+        ]
+        -mdels items[
+            1-user >> foreign key >> null and blank = True
+            2-products >> many to many field >> blank=True
+            3-subtotal >> decimal field >> default=0.00 , max_digits=100, decimal_places=2
+            4-total >> decimal field >> default=0.00 , max_digits=100, decimal_places=2
+            5-updated >> data time field >> auto_now = True
+            6-timestamp >> date time field >> auto_now_add=True
+            7-objects     = CartManager()
+
+            __str__ == str(self.id)
+
+        ]
+
+        def m2m_changed_cart_receiver(sender, instance, action, *args, **kwargs):
+            if action == "post_add" or action == "post_remove" or action == "post_clear":
+                products = instance.products.all()
+                total = 0
+                for x in products:
+                    total += x.price
+                instance.subtotal = total
+                instance.save()
+        m2m_changed.connect(m2m_changed_cart_receiver, sender=Cart.products.through)
+
+        def pre_save_cart_receiver(sender, instance, *args, **kwargs):
+            if instance.subtotal > 0:
+                instance.subtotal = instance.total + 10
+            else:
+                instance.total = 0
+        
+        pre_save.connect(pre_save_cart_receiver, sender=Cart)
+    ]
+
+    -add cart in admin
+    
+    -add cart in views[
+        -def cart_home(request):
+            cart_obj, new_obj = Cart.objects.new_or_get(request)
+            return render(request, 'cart_home.html', {"cart":cart_obj})
+        
+        -def cart_update(request):
+            product_id = request.POST.get('product_id')
+            if product_id is not None:
+                try:
+                    product_obj = Product.objects.get(id=product_id)
+                except Product.DoesNotExist:
+                    return redirect("cart:cart_home")
+                cart_obj, new_obj = Cart.objects.new_or_get(request)
+                if product_obj in cart_obj.products.all():
+                    cart_obj.products.remove(product_obj)
+                else:
+                    cart_obj.products.add(product_obj)
+                
+                request.session['cart_items'] = cart_obj.products.count()
+    ]
+    -Rewrite product views.py[
+        class ProductDetailView(DetailView):
+            queryset = Product.objects.all()
+            template_name=  'products/detail.html'
+            # context_object_name = 'product'
+            def get_context_data(self,*args, **kwargs):
+                context = super(ProductDetailView, self).get_context_data(*args, **kwargs)
+                cart_obj, new_obj = Cart.objects.new_or_get(self.request)
+                context['cart'] = cart_obj
+                return context
+
+    ]
+]
