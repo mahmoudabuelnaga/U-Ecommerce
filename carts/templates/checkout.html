@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if not billing_profile %}
+<div class="container"> 
+        <div class="row text-center">
+                <div class="col-12 col-md-6">
+                        <a href="{% url 'accounts:login' %}?next={{request.path}}">Login</a> 
+                </div>
+                <div class="col-12 col-md-6">
+                        Continue as Guest
+                </div>
+        </div>
+</div>
+
+{% else %}
+        <div class="container">
+                <h1>Checkout</h1>
+                <p>Cart total : {{object.cart.total}}</p>
+                <p>Shipping total : {{object.shipping_total}}</p>
+                <p>Total : {{object.total}}</p>
+
+        </div>
+
+{% endif %}
+{% endblock content %}
+    

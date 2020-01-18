@@ -24,8 +24,10 @@ urlpatterns = [
     path('', include('product.urls' , namespace='products')),
     path('search/', include("search.urls", namespace='search')),
     path('cart/', include('carts.urls' , namespace='cart')),
+    path('accounts/', include('accounts.urls' , namespace='accounts')),
 
-    path("", include("django.contrib.auth.urls")),
+
+    # path("", include("django.contrib.auth.urls")),
 
     path('change-language/', change_language, name='change-language'),
     

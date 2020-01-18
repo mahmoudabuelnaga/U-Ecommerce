@@ -1,5 +1,5 @@
 from django.db import models
-from product.models import Product
+# from product.models import Product
 from django.utils.text import slugify
 
 class Tag(models.Model):
@@ -7,7 +7,7 @@ class Tag(models.Model):
     slug        = models.SlugField(null=True, blank=True)
     timestamp   = models.DateTimeField(auto_now_add=True)
     active      = models.BooleanField(default=True)
-    products    = models.ManyToManyField(Product, blank=True)
+    # products    = models.ManyToManyField(Product, blank=True)
 
     def __str__(self):
         return self.title

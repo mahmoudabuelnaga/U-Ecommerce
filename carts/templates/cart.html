@@ -28,6 +28,7 @@
 </table>
 <h3 colspan="3">Subtotal : {{ cart.subtotal }}</h3>
 <h3 colspan="3">Total : {{ cart.total }}</h3>
+<h3 colspan="3" class="btn btn-success"><a href="{% url 'cart:checkout_home' %}">Checkout</a></h3>
 {% else %}
 <p class="lead">Cart is empty</p>
     {% endif %}

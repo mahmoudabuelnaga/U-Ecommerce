@@ -1,9 +1,11 @@
 from django.db.models import Q
+from tags.models import Tag
 from django.db import models
 import random
 import os
 import datetime
 from django.urls import reverse
+from colorfield.fields import ColorField
 # Create your models here.
 def get_filename_ext(filepath):
     base_name = os.path.basename(filepath)
@@ -62,6 +64,8 @@ class Product(models.Model):
     image           = models.ImageField(upload_to=upload_image_path, null=True, blank=True)
     featured        = models.BooleanField(default=False)
     active          = models.BooleanField(default=True)
+    color           = ColorField()
+    tags            = models.ManyToManyField(Tag, blank=True)
 
     objects         = ProductManager()
 

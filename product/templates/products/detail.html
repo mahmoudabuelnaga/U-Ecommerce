@@ -6,6 +6,9 @@
 
         <img src="{{object.image.url}}" alt="">
         <p>{{object.description}}</p>
+        <p style="background-color: {{object.color}};"></p>
+        <input value="{{object.color}}">
+        <!-- <li><a href="#" class="color1"></a></li> -->
     </div>
     {% include 'update_cart.html' with product=object cart=cart %}
 {% endblock content %}

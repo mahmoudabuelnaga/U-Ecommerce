@@ -38,12 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'bootstrap4',
+    'colorfield',
+
     # OUR APPS
     'product.apps.ProductConfig',
     'search.apps.SearchConfig',
     'tags.apps.TagsConfig',
     'carts.apps.CartsConfig',
+    'orders.apps.OrdersConfig',
+    'billing.apps.BillingConfig',
+    'accounts.apps.AccountsConfig',
 ]
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL  = '/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

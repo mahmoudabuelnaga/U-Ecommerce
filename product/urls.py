@@ -4,7 +4,7 @@ from .views import ProductListView, ProductDetailView, product_list_view, produc
 app_name = 'product'
 
 urlpatterns = [
-    path('', ProductListView.as_view()),
+    path('', ProductListView.as_view(), name='list'),
     path('fbv/', product_list_view),
 
     path('<int:pk>/', ProductDetailView.as_view(), name='detail'),
