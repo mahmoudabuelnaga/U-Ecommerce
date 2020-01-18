@@ -55,7 +55,12 @@ class ProductManager(models.Manager):
     
     def search(self, query):
         return self.get_queryset().active().search(query)
+class Color(models.Model):
+    color           = ColorField()
 
+    def __str__(self):
+        return self.color
+    
 
 class Product(models.Model):
     title           = models.CharField(max_length=120)
@@ -64,7 +69,7 @@ class Product(models.Model):
     image           = models.ImageField(upload_to=upload_image_path, null=True, blank=True)
     featured        = models.BooleanField(default=False)
     active          = models.BooleanField(default=True)
-    color           = ColorField()
+    color           = models.ManyToManyField(Color, blank=True)
     tags            = models.ManyToManyField(Tag, blank=True)
 
     objects         = ProductManager()

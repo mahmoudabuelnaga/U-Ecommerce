@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Product
+from .models import Product, Color
 from django.views.generic import ListView, DetailView
 from django.http import Http404
 from django.utils.translation import ugettext
@@ -58,6 +58,10 @@ def product_detail_view(request, pk=None, *args, **kwargs):
         'product':queryset,
     }
     return render(request, 'products/detail.html', context)
+
+def color_product(request):
+    color = Color.objects.all()
+    return render(request, "color.html", {"color":color,})
 
 
 def change_language(request):

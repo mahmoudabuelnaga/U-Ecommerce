@@ -6,8 +6,23 @@
 
         <img src="{{object.image.url}}" alt="">
         <p>{{object.description}}</p>
-        <p style="background-color: {{object.color}};"></p>
-        <input value="{{object.color}}">
+        {% for color in object.color.all %}
+        <p class="jscolor">{{color.color}}</p>
+        
+        {% endfor %}    
+        <div class="widget-desc">
+            <ul class="d-flex">
+
+        {% for color in object.color.all %}    
+        <p style="background-color: {{ color.color }}"></p>
+        <li style="width: 25%; margin-bottom: 15px;">
+            <a href="" style="width: 30px; height: 30px; display: block; border-radius: 50%; background-color: $white-color; position: relative; z-index: 1; box-shadow: 0 0 3px rgba(0, 0, 0, 0.15); background-color: {{ color.color }};">
+
+            </a>
+        </li>
+        {% endfor %} 
+                
+
         <!-- <li><a href="#" class="color1"></a></li> -->
     </div>
     {% include 'update_cart.html' with product=object cart=cart %}
